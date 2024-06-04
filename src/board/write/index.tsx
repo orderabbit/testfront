@@ -1,44 +1,52 @@
-import React, { ChangeEvent, useRef } from 'react'
+import React, { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useBoardStore from 'store/board.store';
+import { postBoardRequest } from 'apis';
 
 export default function Write() {
-
-    const titleRef = useRef<HTMLTextAreaElement | null>(null);
-    const contentRef = useRef<HTMLTextAreaElement | null>(null);
-
     const navigate = useNavigate();
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
-    const { title, setTitle } = useBoardStore();
-    const { content, setContent } = useBoardStore();
-
-    const onTitleChangeHandler = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target;
-        setTitle(value);
-
-        if (!titleRef.current) return;
-        titleRef.current.style.height = 'auto';
-        titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setTitle(event.target.value);
     };
 
-    const onContentChangeHandler = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target;
-        setContent(value);
-
-        if (!contentRef.current) return;
-        contentRef.current.style.height = 'auto';
-        contentRef.current.style.height = `${contentRef.current.scrollHeight}px`;
+    const handleContentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        setContent(event.target.value);
     };
+
+    const uploadPost = async () => {
+        try {
+            const result = await postBoardRequest({ title, content });
+            if (result && result.code === 'SU') {
+                navigate('/');
+            } else {
+                setErrorMessage('게시물 업로드 실패');
+            }
+        } catch (error) {
+            console.error('게시물 업로드 중 오류가 발생했습니다:', error);
+            setErrorMessage('게시물 업로드 중 오류가 발생했습니다');
+        }
+    };
+
     return (
-        <div className='board-write-box'>
-            <div className='board-write-title-box'>
-                <textarea ref={titleRef} className='board-write-title-textarea' rows={1} placeholder='제목을 작성해주세요.' value={title} onChange={onTitleChangeHandler} />
-            </div>
-            <div className='divider'></div>
-            <div className='board-write-content-box'>
-                <textarea ref={contentRef} className='board-write-content-textarea' placeholder='내용을 작성해주세요.' value={content} onChange={onContentChangeHandler} />
-            </div>
+        <div>
+            <h2>게시물 작성하기</h2>
+            <input
+                type="text"
+                placeholder="제목을 입력하세요"
+                value={title}
+                onChange={handleTitleChange}
+            />
+            <br />
+            <textarea
+                placeholder="내용을 입력하세요"
+                value={content}
+                onChange={handleContentChange}
+            />
+            <br />
+            <button onClick={uploadPost}>게시물 업로드</button>
         </div>
-
-    )
-}
+    );
+};

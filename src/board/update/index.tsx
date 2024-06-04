@@ -1,92 +1,78 @@
-import { PatchBoardResponseDto, PostBoardResponseDto } from 'apis/response/board';
-import ResponseDto from 'apis/response/response.dto';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { getBoardRequest, patchBoardRequest } from 'apis';
+import { PostBoardRequestDto } from 'apis/request/board';
 
-import React, { ChangeEvent, useRef } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import useBoardStore from 'store/board.store';
-import { patchBoardRequest, postBoardRequest } from 'apis';
-import { WRITE_PATH, DETAIL_PATH } from 'constants/index';
-import { PatchBoardRequestDto, PostBoardRequestDto } from 'apis/request/board';
-
-export default function Write() {
-
-    const titleRef = useRef<HTMLTextAreaElement | null>(null);
-    const contentRef = useRef<HTMLTextAreaElement | null>(null);
-
-    const navigate = useNavigate();
-
-    const { pathname } = useLocation();
-    const { title, setTitle } = useBoardStore();
-    const { content, setContent, resetBoard } = useBoardStore();
+export default function Update() {
     const params = useParams();
     const boardNumber = Number(params["Number"]);
+    const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState('');
+    const [postRequest, setPostRequest] = useState<PostBoardRequestDto>({
+        title: '',
+        content: ''
+    });
 
-    const patchBoardResponse = (responseBody: PatchBoardResponseDto | ResponseDto | null) => {
-        if (!responseBody) return;
-        const { code } = responseBody;
-        if (code === 'DBE') alert('데이터베이스 오류입니다.');
-        if (code === 'VF') alert('모두 입력하세요.');
-        if (code !== 'SU') return;
-
-        if (!boardNumber) return;
-        navigate(DETAIL_PATH(boardNumber));
-    }
-
-    const onTitleChangeHandler = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target;
-        setTitle(value);
-
-        if (!titleRef.current) return;
-        titleRef.current.style.height = 'auto';
-        titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
-    };
-
-    const onContentChangeHandler = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        const { value } = event.target;
-        setContent(value);
-
-        if (!contentRef.current) return;
-        contentRef.current.style.height = 'auto';
-        contentRef.current.style.height = `${contentRef.current.scrollHeight}px`;
-    };
-    const postBoardResponse = (responseBody: PostBoardResponseDto | ResponseDto | null) => {
-        if (!responseBody) return;
-        const { code } = responseBody;
-        if (code === 'DBE') alert('데이터베이스 오류입니다.');
-        if (code === 'VF') alert('모두 입력하세요.');
-        if (code !== 'SU') return;
-        resetBoard();
-    }
-
-    const onUploadButtonClickHandler = async () => {
-
-        const isWritePage = pathname === WRITE_PATH();
-        if (isWritePage) {
-            const requestBody: PostBoardRequestDto = { title, content }
-            postBoardRequest(requestBody).then(postBoardResponse);
-        } else {
-            if (!boardNumber) {
-                alert('존재하지 않는 번호입니다.');
-            } else {
-                const requestBody: PatchBoardRequestDto = { title, content }
-                patchBoardRequest(boardNumber, requestBody).then(patchBoardResponse);
+    useEffect(() => {
+        const fetchBoardDetails = async () => {
+            try {
+                const response = await getBoardRequest(boardNumber);
+                if ('title' in response && 'content' in response) {
+                    const { title, content } = response;
+                    setPostRequest({ title, content });
+                } else {
+                    alert('게시물 정보를 불러오는 데 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('게시물 정보를 불러오는 중 오류가 발생했습니다:', error);
+                alert('게시물 정보를 불러오는 중 오류가 발생했습니다.');
             }
+        };
+        fetchBoardDetails();
+    }, []);
+    
+    const updatePost = async () => {
+        try {
+            const result = await patchBoardRequest(boardNumber, postRequest);
+            if (result && result.code === 'SU') {
+                navigate('/');
+            } else {
+                setErrorMessage('게시물 수정 실패');
+            }
+        } catch (error) {
+            console.error('게시물 수정 중 오류가 발생했습니다:', error);
+            setErrorMessage('게시물 수정 중 오류가 발생했습니다');
         }
-    }
-    if (title && content)
-        return <div className='black-button' onClick={onUploadButtonClickHandler}>{'업로드'}</div>;
+    };
+
+    const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = event.target;
+        setPostRequest({
+            ...postRequest,
+            [name]: value
+        });
+    };
 
     return (
-        <div className='board-write-box'>
-            <div className='board-write-title-box'>
-                <textarea ref={titleRef} className='board-write-title-textarea' rows={1} placeholder='제목을 작성해주세요.' value={title} onChange={onTitleChangeHandler} />
-            </div>
-            <div className='divider'></div>
-            <div className='board-write-content-box'>
-                <textarea ref={contentRef} className='board-write-content-textarea' placeholder='내용을 작성해주세요.' value={content} onChange={onContentChangeHandler} />
-            </div>
+        <div>
+            <h2>게시물 수정하기</h2>
+            <input
+                type="text"
+                name="title"
+                placeholder="제목을 입력하세요"
+                value={postRequest.title}
+                onChange={handleInputChange}
+            />
+            <br />
+            <textarea
+                name="content"
+                placeholder="내용을 입력하세요"
+                value={postRequest.content}
+                onChange={handleInputChange}
+            />
+            <br />
+            <button onClick={updatePost}>게시물 수정</button>
+            {errorMessage && <div style={{ color: 'red' }}>{errorMessage}</div>}
         </div>
-
-    )
-}
-
+    );
+};
