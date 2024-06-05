@@ -1,5 +1,5 @@
 export default interface Board {
-    boardNumber: number;
+    boardNumber: number | string;
     title: string;
     content: string;
 }

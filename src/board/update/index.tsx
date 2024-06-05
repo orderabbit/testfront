@@ -35,6 +35,7 @@ export default function Update() {
         try {
             const result = await patchBoardRequest(boardNumber, postRequest);
             if (result && result.code === 'SU') {
+                alert('게시물 수정 완료');
                 navigate('/');
             } else {
                 setErrorMessage('게시물 수정 실패');

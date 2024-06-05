@@ -12,6 +12,20 @@ const PATCH_BOARD_URL = (itemNumber: number | string) => `${API_DOMAIN}/board/${
 const GET_BOARD_URL = (itemNumber: number | string) => `${API_DOMAIN}/board/detail/${itemNumber}`;
 const DELETE_BOARD_URL = (itemNumber: number | string) => `${API_DOMAIN}/board/delete/${itemNumber}`;
 
+export const getAllBoardRequest = async () => {
+    const result = await axios.get(GET_ALL_BOARD_URL())
+        .then(response => {
+            const responseBody: GetAllBoardResponseDto = response.data;
+            return responseBody;
+        })
+        .catch(error => {
+            if (!error.response) return null;
+            const responseBody: ResponseDto = error.response.data;
+            return responseBody;
+        })
+    return result;
+};
+
 export const getBoardRequest = async (boardNumber: number | string) => {
     const result = await axios.get(GET_BOARD_URL(boardNumber))
         .then(response => {
@@ -38,7 +52,7 @@ export const postBoardRequest = async (requestBody: PostBoardRequestDto) => {
     return result;
 }
 
-export const deleteBoardRequest = async (boardNumber: string) => {
+export const deleteBoardRequest = async (boardNumber: number | string) => {
     const result = await axios.delete(DELETE_BOARD_URL(boardNumber))
         .then(response => {
             const responseBody: DeleteBoardResponseDto = response.data;
@@ -66,16 +80,3 @@ export const patchBoardRequest = async (boardNumber: number | string, requestBod
     return result;
 };
 
-export const getAllBoardRequest = async () => {
-    const result = await axios.get(GET_ALL_BOARD_URL())
-        .then(response => {
-            const responseBody: GetAllBoardResponseDto = response.data;
-            return responseBody;
-        })
-        .catch(error => {
-            if (!error.response) return null;
-            const responseBody: ResponseDto = error.response.data;
-            return responseBody;
-        })
-    return result;
-};

@@ -16,10 +16,11 @@ export default function Write() {
         setContent(event.target.value);
     };
 
-    const uploadPost = async () => {
+    const uploadPostClickHandler = async () => {
         try {
             const result = await postBoardRequest({ title, content });
             if (result && result.code === 'SU') {
+                alert('게시물이 업로드되었습니다.');
                 navigate('/');
             } else {
                 setErrorMessage('게시물 업로드 실패');
@@ -46,7 +47,7 @@ export default function Write() {
                 onChange={handleContentChange}
             />
             <br />
-            <button onClick={uploadPost}>게시물 업로드</button>
+            <button onClick={uploadPostClickHandler}>게시물 업로드</button>
         </div>
     );
 };

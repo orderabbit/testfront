@@ -1,13 +1,18 @@
 
-import { getAllBoardRequest } from 'apis';
+import { deleteBoardRequest, getAllBoardRequest } from 'apis';
+import { DeleteBoardResponseDto } from 'apis/response/board';
+import ResponseDto from 'apis/response/response.dto';
+import { UPDATE_PATH } from 'constants';
 import Board from 'interface/board.interface';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function Home() {
 
+  const {boardNumber} = useParams();
   const navigator = useNavigate();
   const [posts, setPosts] = useState<Board[]>([]);
+  const [deletingBoardNumber, setDeletingBoardNumber] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -33,7 +38,30 @@ export default function Home() {
     navigator('/write');
   }
 
-  console.log("1221212121212121")
+  const deletePostClickHandler = (boardNumber: number | string) => {
+    if(!boardNumber) {
+      alert('게시물 번호가 없습니다.');
+      return;
+    };
+    deleteBoardRequest(boardNumber).then(deleteBoardResponse);
+  }
+
+  const deleteBoardResponse = (responseBody: DeleteBoardResponseDto | ResponseDto | null) => {
+    if (responseBody && responseBody.code === 'SU') {
+      alert('삭제되었습니다.');
+      setPosts(posts.filter(post => post.boardNumber !== deletingBoardNumber));
+    } else {
+      alert('삭제 실패');
+    }
+    setDeletingBoardNumber(null);
+  }
+
+  const updatePostClickHandler = (boardNumber: number | string) => {
+    console.log(boardNumber);
+    navigator(UPDATE_PATH(boardNumber));
+  }
+
+  console.log(posts);
   return (
     <div className='main-contents-box'>
       <h2>게시물</h2>
@@ -43,6 +71,8 @@ export default function Home() {
           <li key={post.boardNumber}>
             <div onClick={() => navigator(`/board/${post.boardNumber}`)}>{post.title}</div>
             <div>{post.content}</div>
+            <button onClick={() => deletePostClickHandler(post.boardNumber)}>삭제</button>
+            <button onClick={() => updatePostClickHandler(post.boardNumber)}>수정</button>
           </li>
         ))}
       </div>
