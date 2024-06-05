@@ -2,6 +2,7 @@
 import { deleteBoardRequest, getAllBoardRequest } from 'apis';
 import { DeleteBoardResponseDto } from 'apis/response/board';
 import ResponseDto from 'apis/response/response.dto';
+import { WRITE_PATH } from 'constants';
 import { UPDATE_PATH } from 'constants';
 import Board from 'interface/board.interface';
 import { useEffect, useState } from 'react';
@@ -35,7 +36,7 @@ export default function Home() {
   }, []);
 
   const writePathClickHandler = () => {
-    navigator('/write');
+    navigator(WRITE_PATH());
   }
 
   const deletePostClickHandler = (boardNumber: number | string) => {
@@ -57,11 +58,9 @@ export default function Home() {
   }
 
   const updatePostClickHandler = (boardNumber: number | string) => {
-    console.log(boardNumber);
     navigator(UPDATE_PATH(boardNumber));
   }
 
-  console.log(posts);
   return (
     <div className='main-contents-box'>
       <h2>게시물</h2>
