@@ -2,15 +2,13 @@
 import { deleteBoardRequest, getAllBoardRequest } from 'apis';
 import { DeleteBoardResponseDto } from 'apis/response/board';
 import ResponseDto from 'apis/response/response.dto';
-import { WRITE_PATH } from 'constants';
-import { UPDATE_PATH } from 'constants';
+import { UPDATE_PATH, WRITE_PATH } from 'constant';
 import Board from 'interface/board.interface';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function Home() {
 
-  const {boardNumber} = useParams();
   const navigator = useNavigate();
   const [posts, setPosts] = useState<Board[]>([]);
   const [deletingBoardNumber, setDeletingBoardNumber] = useState<number | null>(null);
@@ -31,7 +29,6 @@ export default function Home() {
         console.error('게시물 목록을 가져오는 중 오류가 발생했습니다:', error);
       }
     };
-
     fetchPosts();
   }, []);
 
@@ -40,7 +37,7 @@ export default function Home() {
   }
 
   const deletePostClickHandler = (boardNumber: number | string) => {
-    if(!boardNumber) {
+    if (!boardNumber) {
       alert('게시물 번호가 없습니다.');
       return;
     };

@@ -2,24 +2,23 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getBoardRequest, patchBoardRequest } from 'apis';
 import { PostBoardRequestDto } from 'apis/request/board';
+import useBoardStore from 'store/board.store';
 
 export default function Update() {
     const params = useParams();
     const boardNumber = Number(params["Number"]);
     const navigate = useNavigate();
     const [errorMessage, setErrorMessage] = useState('');
-    const [postRequest, setPostRequest] = useState<PostBoardRequestDto>({
-        title: '',
-        content: ''
-    });
+    const { title, setTitle } = useBoardStore();
+    const { content, setContent } = useBoardStore();
 
     useEffect(() => {
         const fetchBoardDetails = async () => {
             try {
                 const response = await getBoardRequest(boardNumber);
-                if ('title' in response && 'content' in response) {
-                    const { title, content } = response;
-                    setPostRequest({ title, content });
+                if (response.code === 'SU') {
+                    setTitle(response.title);
+                    setContent(response.content);
                 } else {
                     alert('게시물 정보를 불러오는 데 실패했습니다.');
                 }
@@ -30,11 +29,14 @@ export default function Update() {
         };
         fetchBoardDetails();
     }, []);
-    
+
     const updatePost = async () => {
         try {
+            const postRequest: PostBoardRequestDto = { title, content };
+
             const result = await patchBoardRequest(boardNumber, postRequest);
-            if (result && result.code === 'SU') {
+            if(!result) return;
+            if (result.code === 'SU') {
                 alert('게시물 수정 완료');
                 navigate('/');
             } else {
@@ -46,30 +48,29 @@ export default function Update() {
         }
     };
 
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = event.target;
-        setPostRequest({
-            ...postRequest,
-            [name]: value
-        });
+    const handleTitleInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setTitle(value);
+    };
+
+    const handleContentInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const { value } = event.target;
+        setContent(value);
     };
 
     return (
         <div>
             <h2>게시물 수정하기</h2>
-            <input
-                type="text"
-                name="title"
+            <textarea
                 placeholder="제목을 입력하세요"
-                value={postRequest.title}
-                onChange={handleInputChange}
+                value={title}
+                onChange={handleTitleInputChange}
             />
             <br />
             <textarea
-                name="content"
                 placeholder="내용을 입력하세요"
-                value={postRequest.content}
-                onChange={handleInputChange}
+                value={content}
+                onChange={handleContentInputChange}
             />
             <br />
             <button onClick={updatePost}>게시물 수정</button>

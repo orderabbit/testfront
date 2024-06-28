@@ -3,7 +3,7 @@ import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Home from './board/main';
 import Write from 'board/write';
-import { MAIN_PATH, WRITE_PATH, UPDATE_PATH } from './constants';
+import { MAIN_PATH, WRITE_PATH, UPDATE_PATH } from './constant';
 import Update from 'board/update';
 
 
